@@ -1,17 +1,26 @@
 import customtkinter
+import io
+import requests
+from PIL import Image
 
 
-def render_video_tiles(master=None, download_list=None):
+def render_video_tiles(master=None, download_list=None, existing_frame=None):
 
-    # Create the main container for all video tiles
-    video_tiles_frame = customtkinter.CTkFrame(
+    # Reuse the existing container or create a new one
+    video_tiles_frame = existing_frame or customtkinter.CTkFrame(
         master,
         corner_radius=15,
         border_width=2,
     )
-    video_tiles_frame.pack(padx=20, pady=10, fill="x", expand=True)
 
-    # Add a heading above the list of videos
+    if existing_frame:
+        # Clear the previous tiles before displaying the updated list
+        for widget in video_tiles_frame.winfo_children():
+            widget.destroy()
+    else:
+        video_tiles_frame.pack(padx=20, pady=10, fill="x", expand=True)
+
+    # Add the section heading
     heading = customtkinter.CTkLabel(
         master=video_tiles_frame,
         text="Videos Information",
@@ -20,10 +29,9 @@ def render_video_tiles(master=None, download_list=None):
     )
     heading.pack(anchor="w", padx=20, pady=10)
 
-    # Build a separate tile for every video in the download list
     for video in download_list or []:
 
-        # Create the main tile that holds the thumbnail, details and button
+        # Main tile
         video_tile_frame = customtkinter.CTkFrame(
             master=video_tiles_frame,
             corner_radius=15,
@@ -31,7 +39,7 @@ def render_video_tiles(master=None, download_list=None):
         )
         video_tile_frame.pack(padx=15, pady=8, fill="x", expand=True)
 
-        # Reserve space for the video thumbnail
+        # Thumbnail placeholder
         thumbnail_frame = customtkinter.CTkFrame(
             master=video_tile_frame,
             width=160,
@@ -41,31 +49,45 @@ def render_video_tiles(master=None, download_list=None):
         thumbnail_frame.pack(side="left", padx=10, pady=10)
         thumbnail_frame.pack_propagate(False)
 
-        # Show a placeholder until the actual thumbnail is loaded
-        thumbnail_label = customtkinter.CTkLabel(
-            master=thumbnail_frame,
-            text="Thumbnail",
-        )
-        thumbnail_label.pack(expand=True)
+        # Load and display the thumbnail image
+        try:
+            response = requests.get(video.get("thumbnail"))
+            response.raise_for_status()
+            image_data = response.content
+            image = Image.open(io.BytesIO(image_data))
+            image = image.resize((160, 100), Image.ANTIALIAS)
+            thumbnail_image = customtkinter.CTkImage(
+                light_image=image, dark_image=image
+            )
+            thumbnail_label = customtkinter.CTkLabel(
+                master=thumbnail_frame,
+                image=thumbnail_image,
+                text="",
+            )
+            thumbnail_label.pack(fill="both", expand=True)
+        except Exception as e:
+            # toast error message if thumbnail fails to load
+            error_label = customtkinter.CTkLabel(
+                master=thumbnail_frame, text="Error loading thumbnail", text_color="red"
+            )
+            error_label.pack(fill="both", expand=True)
 
-        # Group the video's title and duration together
+        # Video details
         video_info_frame = customtkinter.CTkFrame(
             master=video_tile_frame,
             fg_color="transparent",
         )
         video_info_frame.pack(side="left", padx=10, pady=10, fill="both", expand=True)
 
-        # Display the video title
         title_label = customtkinter.CTkLabel(
             master=video_info_frame,
-            text=video.get("title", "Unknown title"),
-            font=customtkinter.CTkFont(family="Arial", size=14, weight="bold"),
+            text=video.get("title") or "Unknown title",
+            font=customtkinter.CTkFont(size=14, weight="bold"),
             anchor="w",
             wraplength=400,
         )
-        title_label.pack(anchor="w", pady=(5, 5))
+        title_label.pack(anchor="w", pady=5)
 
-        # Display how long the video is
         duration_label = customtkinter.CTkLabel(
             master=video_info_frame,
             text=f"Duration: {video.get('duration', 'Unknown')}",
@@ -74,7 +96,7 @@ def render_video_tiles(master=None, download_list=None):
         )
         duration_label.pack(anchor="w")
 
-        # Add a button for downloading this particular video
+        # Download button (connect its command when ready)
         download_button = customtkinter.CTkButton(
             master=video_tile_frame,
             text="Download",
@@ -82,5 +104,4 @@ def render_video_tiles(master=None, download_list=None):
         )
         download_button.pack(side="right", padx=15, pady=10)
 
-    # Return the frame so it can be accessed or managed elsewhere
     return video_tiles_frame
