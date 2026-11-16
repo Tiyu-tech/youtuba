@@ -46,3 +46,8 @@ def render_youtube_video_form(master=None):
     )
     # packing and spacing for url input
     url_input.pack(padx=20, pady=10)
+    # submit Button
+    submit_btn = customtkinter.CTkButton(
+        master=youtube_video_form_frame, width=200, height=30, text="Download Video"
+    )
+    submit_btn.pack(padx=20, pady=10)
