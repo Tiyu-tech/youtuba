@@ -86,7 +86,7 @@ def render_youtube_video_form(master=None):
         master=youtube_video_form_frame,
         width=200,
         height=30,
-        text="Get Video Information",
+        text="Load Video",
         command=process_video,
     )
     submit_btn.pack(padx=20, pady=10)
