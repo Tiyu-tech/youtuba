@@ -1,5 +1,10 @@
 import customtkinter
 
+from vid_download import download_video, get_video_info, process_video
+from video_tiles import render_video_tiles
+
+download_list = [{"title": "Tech Video", "url": "page url", "duration": "55:00"}]
+
 
 def render_mainframe(master=None):
     # declare main frame
@@ -25,7 +30,7 @@ def render_youtube_video_form(master=None):
         border_width=2,
     )
     # youtube video from frame packing and spacing
-    youtube_video_form_frame.pack(pady=30, padx=20, fill="both", expand=True)
+    youtube_video_form_frame.pack(padx=20, fill="x", expand=True)
     # Title text for form
     label = customtkinter.CTkLabel(
         text="DownLoad Youtube Video",
@@ -46,8 +51,15 @@ def render_youtube_video_form(master=None):
     )
     # packing and spacing for url input
     url_input.pack(padx=20, pady=10)
+
     # submit Button
     submit_btn = customtkinter.CTkButton(
-        master=youtube_video_form_frame, width=200, height=30, text="Download Video"
+        master=youtube_video_form_frame,
+        width=200,
+        height=30,
+        text="Download Video",
+        command=lambda: process_video(url_input, download_list),
     )
+
     submit_btn.pack(padx=20, pady=10)
+    render_video_tiles(master=master, download_list=download_list)
