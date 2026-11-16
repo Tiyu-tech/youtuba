@@ -14,6 +14,17 @@ def main():
     )
     # sidebar frame sizing and packing
     sidebar_frame.pack(side="left", fill="y", expand=False)
+
+    # Side bar title
+    sidebar_title = customtkinter.CTkLabel(
+        master=sidebar_frame,
+        text="Youtuba Downloader",
+        font=("Roboto", 20),
+        text_color="white",
+    )
+    # side bar title sizing and packing
+    sidebar_title.pack(pady=4, padx=20)
+
     app.mainloop()
 
 
